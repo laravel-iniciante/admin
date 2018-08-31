@@ -52,7 +52,7 @@ class CategoryController extends Controller
                 $ret .= ' '. $sep . ' ' ;
                 $ret .= $m['id'] . ' - ' . $m['name'];
                 $ret .= '</a>';
-                $ret .= $this->menu_categorias($sep . '—' ,$menus, $m, $level + 1);
+                $ret .= $this->menu_categorias($sep . '—' ,$menus, $m['id'], $level + 1);
                 $ret .= '</li>';
             }
         }

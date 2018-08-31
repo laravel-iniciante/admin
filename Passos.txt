@@ -5,3 +5,95 @@ renomear o env.example para env
 php artisan serve
 
 php artisan key:generate
+
+php artisan make:auth
+(gera a migração para a autenticação)
+
+adicionar dois campos na migração da autenticação
+$table->boolean('status')->default(1);
+$table->string('img_perfil')->nullable();
+
+criar o banco
+configurar banco no env
+
+rodar a migração
+php artisan migrate
+
+
+Populando o banco
+php artisan make:seeder UsersTableSeeder
+
+usuário padrão
+
+colocar no metodo run dentro de UsersTableSeeder
+	
+	Limpa a tabela
+	App\User::truncate();
+
+	cria um usuário padrão EU
+        DB::table('users')->insert([
+            'name' => 'Thiago Sobrinho',
+            'email' => 'thiago122@gmail.com',
+            'password' => bcrypt('123456'),
+        ]);
+
+	// Cria 50 usuários com base na factory criada
+	// em database/factory/UserFactory
+	factory(App\User::class, 50)->create();
+
+
+
+dentro do databaseSeeder
+descomentar
+$this->call(UsersTableSeeder::class);
+
+colocar como vetor
+
+$this->call([UsersTableSeeder::class]),
+
+rodar uma seed
+
+php artisan db:seed
+ou
+php artisan db:seed --class=UsersTableSeeder
+
+Login usuário - verificar se está ativo para autenticar
+
+Colocar o código abaixo no controller app/auth/LoginController
+	
+    /@Override
+    protected function credentials(\Illuminate\Http\Request $request)
+    {
+        $credentials = $request->only($this->username(), 'password');
+        return array_add($credentials, 'status', '1');
+    }
+
+
+Redirecionar o usuário logado para o dashboard
+
+    protected function redirectTo()
+    {
+        // logica futura aqui para determinar o redirecionamento
+        return '/dashboard';
+    }
+
+criar namepace para controllers dashboard
+Criar controllers dashboard
+CategoryController
+PermissionController
+ProductController
+RoleController
+UserController
+DashboardController
+
+Criar rotas agrupadas do dashboard
+Route::group([ 'prefix' => 'dashboard', 'namespace' => 'Dashboard'], function(){
+    Route::get('/', 'DashboardController@index')->name('dashboard');
+    Route::resource('user', 'UserController');
+    Route::resource('product', 'ProductController');
+    Route::resource('permission', 'PermissionController');
+    Route::resource('category', 'CategoryController');
+    Route::resource('role', 'RoleController');
+});
+
+Rever se os controllers devem estar em inglês
