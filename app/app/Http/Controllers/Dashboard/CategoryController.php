@@ -15,7 +15,14 @@ class CategoryController extends Controller
      */
     public function index()
     {
+
         $categories = Category::get()->toArray();
+
+
+        if (\Gate::denies('perm:update-user', $categories)) {
+            dd('Acesso Negado');
+        }
+
 
         $tree = $this->menu_categorias( ' - ', $categories, null);
 
@@ -46,7 +53,6 @@ class CategoryController extends Controller
 
             if($m['sub_category_id'] == $parent)
             {
-                echo 'd';
                 $ret .= '<li id="categoria-'. $m['id'] .'"> ';
                 $ret .= '<a href="busca/?categoria='.$m['id'] .'" >';
                 $ret .= ' '. $sep . ' ' ;

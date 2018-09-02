@@ -63,8 +63,35 @@ class LoginController extends Controller
      */
     protected function redirectTo()
     {
+
+        $this->setUserPermissionsOnSession();
+
         // TODO: logica futura aqui para determinar o redirecionamento
         return '/dashboard';
+    }
+
+    // Seta as permissões do usuário na session 
+    protected setUserPermissionsOnSession(){
+
+        // Pega o usuário logado
+        $user = \Auth::user();
+
+        // Pega as roles do usuário
+        $roles = $user->roles()->get()->toArray();
+        // Pega somente o id das roles
+        $roleIds = array_pluck($roles, 'id');
+
+        // pega as permissões das roles com os Ids das roles
+        $permission = \App\Permission::whereHas('roles', function($query) use ($roleIds){
+            $query->whereIn('role_id', $roleIds);
+        })->get()->toArray();
+
+        // Cria um array simples com os nomes das permissões
+        $permissionsName = array_pluck($permission, 'name');
+
+        // Coloca as permissões na sessão
+        session(['permissions' => $permissionsName]);
+
     }
 
 }

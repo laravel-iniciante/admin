@@ -25,6 +25,35 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
+        Gate::before(function ($user, $ability) {
+
+            return $this->hasPermission($user, $ability);
+
+        });
+
+
         //
     }
+
+    protected function hasPermission($user, $ability){
+
+        $permissions = session('permissions');
+
+        $definitionPerm = explode(':', $ability);
+
+        if( ! $definitionPerm[0] == 'perm' ){
+            return false;
+        }
+
+        $permissionName = $definitionPerm[1];
+
+        if( !in_array($permissionName, $permissions) ){
+            return false;
+        }
+
+        return true;
+
+    }
+
+
 }
