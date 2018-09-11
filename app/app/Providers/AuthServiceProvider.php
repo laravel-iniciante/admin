@@ -27,14 +27,28 @@ class AuthServiceProvider extends ServiceProvider
 
         Gate::before(function ($user, $ability) {
 
-            return $this->hasPermission($user, $ability);
+            if( $this->verifyAbility($ability) ){
+                return $this->hasPermission($user, $ability);
+            }
 
         });
 
-
-        //
     }
 
+    // verifica se contém perm:
+    //
+    protected function verifyAbility($ability){
+
+        $definitionPerm = explode(':', $ability);
+
+        if( ! $definitionPerm[0] == 'perm' ){
+            return false;
+        }
+
+        return false;
+    }
+
+    // verifica nas permissões que estão cadastradas no banco
     protected function hasPermission($user, $ability){
 
         $permissions = session('permissions');
