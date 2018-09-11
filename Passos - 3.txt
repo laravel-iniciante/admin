@@ -1,0 +1,153 @@
+
+
+
+Criar as migrações de Permissão
+$ php artisan make:migration create_permissions_table --create=permissions
+
+    public function up()
+    {
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name',50);
+            $table->string('label',200);
+            $table->timestamps();
+        });
+    }
+
+Criar as migrações de Role 
+$ php artisan make:migration create_roles_table --create=Roles
+        Schema::create('roles', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name',50);
+            $table->string('label',200);
+            $table->timestamps();
+        });
+
+Criar o relacionamento entre a permission e role
+$ php artisan make:migration create_relation_role_permission
+        Schema::create('role_user', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('user_id')->unsigned();
+            $table->integer('role_id')->unsigned();
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+
+            $table->foreign('role_id')
+                ->references('id')
+                ->on('roles')
+                ->onDelete('cascade');
+        });
+
+        Schema::create('permission_role', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('permission_id')->unsigned();
+            $table->integer('role_id')->unsigned();
+            $table->foreign('permission_id')
+                        ->references('id')
+                        ->on('permissions')
+                        ->onDelete('cascade');
+            $table->foreign('role_id')
+                        ->references('id')
+                        ->on('roles')
+                        ->onDelete('cascade');
+        });
+
+
+Cria o model permissão
+$ php artisan make:model Permission
+
+Cria o model role
+$ php artisan make:model Role
+
+Seta os relacionamentos do Model User
+
+    public function roles()
+    {
+       return $this->belongsToMany(\App\Role::class);
+    }
+
+    public function permissions()
+    {
+       return $this->belongsToMany(\App\Permission::class);
+    }
+
+Método para colocar as permissões do usuário na session após o login
+
+no loginController criar o método que vai colocar as permissões nas sessions
+
+    // Seta as permissões do usuário na session 
+    protected setUserPermissionsOnSession(){
+
+        // Pega o usuário logado
+        $user = \Auth::user();
+
+        // Pega as roles do usuário
+        $roles = $user->roles()->get()->toArray();
+        // Pega somente o id das roles
+        $roleIds = array_pluck($roles, 'id');
+
+        // pega as permissões das roles com os Ids das roles
+        $permission = \App\Permission::whereHas('roles', function($query) use ($roleIds){
+            $query->whereIn('role_id', $roleIds);
+        })->get()->toArray();
+
+        // Cria um array simples com os nomes das permissões
+        $permissionsName = array_pluck($permission, 'name');
+
+        // Coloca as permissões na sessão
+        session(['permissions' => $permissionsName]);
+
+    }
+
+
+após o login antes de redirecionar chama o médodo criado no loginController
+    protected function redirectTo()
+    {
+
+        $this->setUserPermissionsOnSession();
+
+        return '/dashboard';
+    }
+
+Verificação de permissão de acesso
+
+ - GATES AUTOMÁTICAS
+
+Criei um método protegido em authServiceProfider -hasPermission
+Este método verifica a exitencia da permissão de acesso para o usuário
+As permissões estão armazenadas na session
+Este método é invocado no método boot através do gate:before
+
+    /**
+     * Register any authentication / authorization services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->registerPolicies();
+
+        Gate::before(function ($user, $ability) {
+            return $this->hasPermission($user, $ability);
+        });
+
+    }
+
+
+
+O padrão para o argumento quando invoca a verificação de permissão de acesso
+pelo gates é
+
+perm:nome-da-permissao
+
+if (\Gate::denies('perm:update-postd', $categories)) {
+   dd('Acesso Negado');
+}
+
+
+A verificação se o usuário pode é feita através de um array contido na session
+Quando o usuário realiza o login, no médodo de redirecionamento
+é adicionado um array com todas as permissões, 
+e um array com todas as roles do usuário.
