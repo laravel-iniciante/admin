@@ -70,8 +70,8 @@ class LoginController extends Controller
         return '/dashboard';
     }
 
-    // Seta as permissões do usuário na session 
-    protected setUserPermissionsOnSession(){
+    // Seta as permissões do usuário na session
+    protected function setUserPermissionsOnSession(){
 
         // Pega o usuário logado
         $user = \Auth::user();
