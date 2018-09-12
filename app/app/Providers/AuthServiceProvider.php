@@ -26,13 +26,19 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         Gate::before(function ($user, $ability) {
-
-
+            
             if( $this->verifyAbility($ability) ){
                 return $this->hasPermission($user, $ability);
             }
 
         });
+
+
+        Gate::define('update-post', function ($user, $post) {
+            $this->hasPermission('update-post');
+            return $user->id == $post->user_id;
+        });
+
 
     }
 
@@ -50,7 +56,7 @@ class AuthServiceProvider extends ServiceProvider
     }
 
     // verifica nas permissões que estão cadastradas no banco
-    protected function hasPermission($user, $ability){
+    protected function hasPermission($ability){
 
         $permissions = session('permissions');
 
