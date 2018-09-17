@@ -1,0 +1,7 @@
+Criar seeders de permissões
+
+// Altamente inspirado em
+https://medium.com/by-vinicius-reis/trabalhando-com-seeds-no-laravel-5-142829ddc32e
+php artisan make:seeder AclTableSeeder
+
+Cód é grande verificar no arquivo
